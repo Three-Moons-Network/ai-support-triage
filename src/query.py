@@ -31,6 +31,7 @@ DYNAMODB_REGION = os.environ.get("AWS_REGION", "us-east-1")
 # AWS Clients
 # ---------------------------------------------------------------------------
 
+
 def get_dynamodb_client() -> boto3.client:
     """Get DynamoDB client."""
     return boto3.client("dynamodb", region_name=DYNAMODB_REGION)
@@ -39,6 +40,7 @@ def get_dynamodb_client() -> boto3.client:
 # ---------------------------------------------------------------------------
 # Query operations
 # ---------------------------------------------------------------------------
+
 
 def get_ticket(ticket_id: str) -> dict[str, Any] | None:
     """Fetch a single ticket by ID."""
@@ -61,7 +63,9 @@ def get_ticket(ticket_id: str) -> dict[str, Any] | None:
             "message": item["message"]["S"],
             "urgency": item["urgency"]["S"],
             "category": item["category"]["S"],
-            "classification_reasoning": item.get("classification_reasoning", {}).get("S", ""),
+            "classification_reasoning": item.get("classification_reasoning", {}).get(
+                "S", ""
+            ),
             "keywords": item.get("keywords", {}).get("SS", []),
             "created_at": item["created_at"]["S"],
             "ingestion_method": item.get("ingestion_method", {}).get("S", "unknown"),
@@ -74,7 +78,9 @@ def get_ticket(ticket_id: str) -> dict[str, Any] | None:
         return None
 
 
-def list_tickets(limit: int = 50, urgency_filter: str | None = None) -> list[dict[str, Any]]:
+def list_tickets(
+    limit: int = 50, urgency_filter: str | None = None
+) -> list[dict[str, Any]]:
     """
     List all tickets with optional urgency filter.
 
@@ -199,6 +205,7 @@ def search_tickets(keyword: str, limit: int = 50) -> list[dict[str, Any]]:
 # Lambda entry point
 # ---------------------------------------------------------------------------
 
+
 def lambda_handler(event: dict, context: Any) -> dict:
     """
     Lambda handler for query API endpoints.
@@ -210,7 +217,13 @@ def lambda_handler(event: dict, context: Any) -> dict:
       GET /stats                - Ticket statistics
       GET /search?q=keyword     - Search tickets
     """
-    logger.info("Query API request", extra={"path": event.get("rawPath"), "method": event.get("requestContext", {}).get("http", {}).get("method")})
+    logger.info(
+        "Query API request",
+        extra={
+            "path": event.get("rawPath"),
+            "method": event.get("requestContext", {}).get("http", {}).get("method"),
+        },
+    )
 
     try:
         path = event.get("rawPath", "")
@@ -232,10 +245,12 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return {
                 "statusCode": 200,
                 "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({
-                    "count": len(tickets),
-                    "tickets": tickets,
-                }),
+                "body": json.dumps(
+                    {
+                        "count": len(tickets),
+                        "tickets": tickets,
+                    }
+                ),
             }
 
         elif path == "/stats" and method == "GET":
@@ -277,27 +292,31 @@ def lambda_handler(event: dict, context: Any) -> dict:
             return {
                 "statusCode": 200,
                 "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({
-                    "query": keyword,
-                    "count": len(tickets),
-                    "tickets": tickets,
-                }),
+                "body": json.dumps(
+                    {
+                        "query": keyword,
+                        "count": len(tickets),
+                        "tickets": tickets,
+                    }
+                ),
             }
 
         else:
             return {
                 "statusCode": 404,
                 "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({
-                    "error": "Not found",
-                    "available_routes": [
-                        "GET /tickets",
-                        "GET /tickets?urgency=high",
-                        "GET /tickets/{ticket_id}",
-                        "GET /stats",
-                        "GET /search?q=keyword",
-                    ],
-                }),
+                "body": json.dumps(
+                    {
+                        "error": "Not found",
+                        "available_routes": [
+                            "GET /tickets",
+                            "GET /tickets?urgency=high",
+                            "GET /tickets/{ticket_id}",
+                            "GET /stats",
+                            "GET /search?q=keyword",
+                        ],
+                    }
+                ),
             }
 
     except ValueError as e:
@@ -313,8 +332,10 @@ def lambda_handler(event: dict, context: Any) -> dict:
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({
-                "error": "Internal server error",
-                "details": str(e),
-            }),
+            "body": json.dumps(
+                {
+                    "error": "Internal server error",
+                    "details": str(e),
+                }
+            ),
         }

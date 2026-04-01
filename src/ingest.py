@@ -13,7 +13,7 @@ import json
 import logging
 import os
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
@@ -77,9 +77,11 @@ Analyze the email content carefully. Look for keywords indicating urgency (urgen
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SupportTicket:
     """Support ticket record for DynamoDB."""
+
     ticket_id: str
     sender_email: str
     subject: str
@@ -97,6 +99,7 @@ class SupportTicket:
 @dataclass
 class ClassificationResult:
     """Result of ticket classification."""
+
     success: bool
     urgency: str | None
     category: str | None
@@ -109,6 +112,7 @@ class ClassificationResult:
 # ---------------------------------------------------------------------------
 # AWS Clients
 # ---------------------------------------------------------------------------
+
 
 def get_dynamodb_client() -> boto3.client:
     """Get DynamoDB client."""
@@ -123,6 +127,7 @@ def get_sns_client() -> boto3.client:
 # ---------------------------------------------------------------------------
 # Core logic
 # ---------------------------------------------------------------------------
+
 
 def parse_ses_event(event: dict[str, Any]) -> tuple[str, str, str, str]:
     """
@@ -305,6 +310,7 @@ def route_to_sns(ticket: SupportTicket) -> bool:
 # Lambda entry point
 # ---------------------------------------------------------------------------
 
+
 def lambda_handler(event: dict, context: Any) -> dict:
     """
     Lambda handler for support ticket ingestion.
@@ -332,14 +338,16 @@ def lambda_handler(event: dict, context: Any) -> dict:
         # Check if this is API Gateway webhook
         elif "body" in event and isinstance(event["body"], str):
             ingestion_method = "webhook"
-            sender, subject, message_body, message_id = parse_webhook_event(event["body"])
+            sender, subject, message_body, message_id = parse_webhook_event(
+                event["body"]
+            )
         elif "body" in event and isinstance(event["body"], dict):
             ingestion_method = "webhook"
             body_dict = event["body"]
             sender = body_dict.get("email") or body_dict.get("sender")
             subject = body_dict.get("subject", "(No subject)")
             message_body = body_dict.get("message") or body_dict.get("body")
-            message_id = body_dict.get("message_id") or str(uuid4())
+            message_id = body_dict.get("message_id") or str(uuid4())  # noqa: F841
         else:
             raise ValueError("Unrecognized event format")
 
@@ -394,20 +402,22 @@ def lambda_handler(event: dict, context: Any) -> dict:
         return {
             "statusCode": 200 if classification.success else 400,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({
-                "ticket_id": ticket_id,
-                "sender_email": sender,
-                "subject": subject,
-                "success": classification.success,
-                "urgency": ticket.urgency,
-                "category": ticket.category,
-                "classification_reasoning": classification.reasoning,
-                "error": classification.error,
-                "processing_time_ms": total_ms,
-                "dynamodb_saved": db_saved,
-                "routed_to_sns": routed,
-                "ingestion_method": ingestion_method,
-            }),
+            "body": json.dumps(
+                {
+                    "ticket_id": ticket_id,
+                    "sender_email": sender,
+                    "subject": subject,
+                    "success": classification.success,
+                    "urgency": ticket.urgency,
+                    "category": ticket.category,
+                    "classification_reasoning": classification.reasoning,
+                    "error": classification.error,
+                    "processing_time_ms": total_ms,
+                    "dynamodb_saved": db_saved,
+                    "routed_to_sns": routed,
+                    "ingestion_method": ingestion_method,
+                }
+            ),
         }
 
     except (ValueError, KeyError) as e:
@@ -423,8 +433,10 @@ def lambda_handler(event: dict, context: Any) -> dict:
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({
-                "error": "Internal server error",
-                "details": str(e),
-            }),
+            "body": json.dumps(
+                {
+                    "error": "Internal server error",
+                    "details": str(e),
+                }
+            ),
         }

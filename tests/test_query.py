@@ -9,14 +9,20 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from src.query import get_statistics, get_ticket, lambda_handler, list_tickets, search_tickets
+from src.query import (
+    get_statistics,
+    get_ticket,
+    lambda_handler,
+    list_tickets,
+    search_tickets,
+)
 
 
 # ---------------------------------------------------------------------------
 # get_ticket
 # ---------------------------------------------------------------------------
+
 
 class TestGetTicket:
     @patch("src.query.get_dynamodb_client")
@@ -54,6 +60,7 @@ class TestGetTicket:
 # ---------------------------------------------------------------------------
 # list_tickets
 # ---------------------------------------------------------------------------
+
 
 class TestListTickets:
     @patch("src.query.get_dynamodb_client")
@@ -126,6 +133,7 @@ class TestListTickets:
 # get_statistics
 # ---------------------------------------------------------------------------
 
+
 class TestGetStatistics:
     @patch("src.query.get_dynamodb_client")
     def test_statistics_aggregation(self, mock_get_client):
@@ -176,6 +184,7 @@ class TestGetStatistics:
 # search_tickets
 # ---------------------------------------------------------------------------
 
+
 class TestSearchTickets:
     @patch("src.query.get_dynamodb_client")
     def test_search_by_keyword(self, mock_get_client):
@@ -213,6 +222,7 @@ class TestSearchTickets:
 # ---------------------------------------------------------------------------
 # lambda_handler
 # ---------------------------------------------------------------------------
+
 
 class TestLambdaHandler:
     @patch("src.query.list_tickets")

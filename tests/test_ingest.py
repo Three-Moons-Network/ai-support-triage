@@ -12,8 +12,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.ingest import (
-    CATEGORIES,
-    URGENCIES,
     ClassificationResult,
     classify_ticket,
     lambda_handler,
@@ -25,6 +23,7 @@ from src.ingest import (
 # ---------------------------------------------------------------------------
 # parse_ses_event
 # ---------------------------------------------------------------------------
+
 
 class TestParseSesEvent:
     def test_valid_ses_event(self):
@@ -54,23 +53,28 @@ class TestParseSesEvent:
 # parse_webhook_event
 # ---------------------------------------------------------------------------
 
+
 class TestParseWebhookEvent:
     def test_valid_webhook_json(self):
-        body = json.dumps({
-            "email": "user@example.com",
-            "subject": "Billing question",
-            "message": "Why was I charged?",
-        })
+        body = json.dumps(
+            {
+                "email": "user@example.com",
+                "subject": "Billing question",
+                "message": "Why was I charged?",
+            }
+        )
         sender, subject, message, msg_id = parse_webhook_event(body)
         assert sender == "user@example.com"
         assert subject == "Billing question"
 
     def test_webhook_with_sender_field(self):
-        body = json.dumps({
-            "sender": "customer@example.com",
-            "subject": "Bug report",
-            "body": "Feature X is broken",
-        })
+        body = json.dumps(
+            {
+                "sender": "customer@example.com",
+                "subject": "Bug report",
+                "body": "Feature X is broken",
+            }
+        )
         sender, subject, message, msg_id = parse_webhook_event(body)
         assert sender == "customer@example.com"
 
@@ -88,6 +92,7 @@ class TestParseWebhookEvent:
 # classify_ticket
 # ---------------------------------------------------------------------------
 
+
 def _mock_anthropic_response(classification_json: str) -> MagicMock:
     """Build a mock anthropic.messages.create() response."""
     response = MagicMock()
@@ -101,14 +106,18 @@ def _mock_anthropic_response(classification_json: str) -> MagicMock:
 class TestClassifyTicket:
     @patch("src.ingest.anthropic.Anthropic")
     def test_critical_urgency_classification(self, mock_client_cls):
-        classification_json = json.dumps({
-            "urgency": "critical",
-            "category": "technical",
-            "reasoning": "System is down",
-            "keywords": ["down", "critical", "broken"],
-        })
+        classification_json = json.dumps(
+            {
+                "urgency": "critical",
+                "category": "technical",
+                "reasoning": "System is down",
+                "keywords": ["down", "critical", "broken"],
+            }
+        )
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(classification_json)
+        mock_client.messages.create.return_value = _mock_anthropic_response(
+            classification_json
+        )
         mock_client_cls.return_value = mock_client
 
         result = classify_ticket("System is down", "Our production database is offline")
@@ -119,14 +128,18 @@ class TestClassifyTicket:
 
     @patch("src.ingest.anthropic.Anthropic")
     def test_billing_category_classification(self, mock_client_cls):
-        classification_json = json.dumps({
-            "urgency": "high",
-            "category": "billing",
-            "reasoning": "Customer charged incorrectly",
-            "keywords": ["invoice", "charge", "refund"],
-        })
+        classification_json = json.dumps(
+            {
+                "urgency": "high",
+                "category": "billing",
+                "reasoning": "Customer charged incorrectly",
+                "keywords": ["invoice", "charge", "refund"],
+            }
+        )
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(classification_json)
+        mock_client.messages.create.return_value = _mock_anthropic_response(
+            classification_json
+        )
         mock_client_cls.return_value = mock_client
 
         result = classify_ticket("Wrong charge", "I was charged $500 instead of $50")
@@ -135,14 +148,18 @@ class TestClassifyTicket:
 
     @patch("src.ingest.anthropic.Anthropic")
     def test_feedback_classification(self, mock_client_cls):
-        classification_json = json.dumps({
-            "urgency": "low",
-            "category": "feedback",
-            "reasoning": "Feature suggestion",
-            "keywords": ["feature", "request", "would like"],
-        })
+        classification_json = json.dumps(
+            {
+                "urgency": "low",
+                "category": "feedback",
+                "reasoning": "Feature suggestion",
+                "keywords": ["feature", "request", "would like"],
+            }
+        )
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(classification_json)
+        mock_client.messages.create.return_value = _mock_anthropic_response(
+            classification_json
+        )
         mock_client_cls.return_value = mock_client
 
         result = classify_ticket("Feature idea", "Would be nice to have dark mode")
@@ -153,7 +170,9 @@ class TestClassifyTicket:
     @patch("src.ingest.anthropic.Anthropic")
     def test_invalid_json_response(self, mock_client_cls):
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response("not json {{{")
+        mock_client.messages.create.return_value = _mock_anthropic_response(
+            "not json {{{"
+        )
         mock_client_cls.return_value = mock_client
 
         result = classify_ticket("Subject", "Body")
@@ -178,14 +197,18 @@ class TestClassifyTicket:
 
     @patch("src.ingest.anthropic.Anthropic")
     def test_invalid_urgency_defaults(self, mock_client_cls):
-        classification_json = json.dumps({
-            "urgency": "INVALID",
-            "category": "technical",
-            "reasoning": "Test",
-            "keywords": [],
-        })
+        classification_json = json.dumps(
+            {
+                "urgency": "INVALID",
+                "category": "technical",
+                "reasoning": "Test",
+                "keywords": [],
+            }
+        )
         mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(classification_json)
+        mock_client.messages.create.return_value = _mock_anthropic_response(
+            classification_json
+        )
         mock_client_cls.return_value = mock_client
 
         result = classify_ticket("Test", "Test")
@@ -196,6 +219,7 @@ class TestClassifyTicket:
 # ---------------------------------------------------------------------------
 # lambda_handler
 # ---------------------------------------------------------------------------
+
 
 class TestLambdaHandler:
     @patch("src.ingest.route_to_sns")
@@ -246,11 +270,13 @@ class TestLambdaHandler:
         mock_route_sns.return_value = True
 
         event = {
-            "body": json.dumps({
-                "email": "user@example.com",
-                "subject": "How to use feature X?",
-                "message": "I don't understand how to...",
-            })
+            "body": json.dumps(
+                {
+                    "email": "user@example.com",
+                    "subject": "How to use feature X?",
+                    "message": "I don't understand how to...",
+                }
+            )
         }
 
         result = lambda_handler(event, None)
@@ -261,7 +287,9 @@ class TestLambdaHandler:
     @patch("src.ingest.route_to_sns")
     @patch("src.ingest.save_ticket_to_dynamodb")
     @patch("src.ingest.classify_ticket")
-    def test_classification_failure_still_saves(self, mock_classify, mock_save_db, mock_route_sns):
+    def test_classification_failure_still_saves(
+        self, mock_classify, mock_save_db, mock_route_sns
+    ):
         mock_classify.return_value = ClassificationResult(
             success=False,
             urgency=None,

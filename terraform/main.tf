@@ -112,8 +112,8 @@ variable "log_retention_days" {
 }
 
 locals {
-  prefix      = "${var.project_name}-${var.environment}"
-  table_name  = "${local.prefix}-tickets"
+  prefix     = "${var.project_name}-${var.environment}"
+  table_name = "${local.prefix}-tickets"
 }
 
 # ---------------------------------------------------------------------------
@@ -121,9 +121,9 @@ locals {
 # ---------------------------------------------------------------------------
 
 resource "aws_dynamodb_table" "tickets" {
-  name           = local.table_name
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "ticket_id"
+  name         = local.table_name
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ticket_id"
 
   attribute {
     name = "ticket_id"
@@ -151,8 +151,8 @@ resource "aws_dynamodb_table" "tickets" {
 resource "aws_sns_topic" "critical" {
   name = "${local.prefix}-critical"
   tags = {
-    Name     = "${local.prefix}-critical"
-    Urgency  = "critical"
+    Name    = "${local.prefix}-critical"
+    Urgency = "critical"
   }
 }
 
@@ -330,17 +330,17 @@ resource "aws_lambda_function" "ingest" {
 
   environment {
     variables = {
-      ENVIRONMENT             = var.environment
-      DYNAMODB_TABLE          = aws_dynamodb_table.tickets.name
-      AWS_REGION              = var.aws_region
-      ANTHROPIC_MODEL         = var.anthropic_model
-      MAX_TOKENS              = tostring(var.max_tokens)
-      ANTHROPIC_API_KEY       = var.anthropic_api_key
-      SNS_TOPIC_CRITICAL      = aws_sns_topic.critical.arn
-      SNS_TOPIC_HIGH          = aws_sns_topic.high.arn
-      SNS_TOPIC_MEDIUM        = aws_sns_topic.medium.arn
-      SNS_TOPIC_LOW           = aws_sns_topic.low.arn
-      LOG_LEVEL               = var.environment == "prod" ? "WARNING" : "INFO"
+      ENVIRONMENT        = var.environment
+      DYNAMODB_TABLE     = aws_dynamodb_table.tickets.name
+      AWS_REGION         = var.aws_region
+      ANTHROPIC_MODEL    = var.anthropic_model
+      MAX_TOKENS         = tostring(var.max_tokens)
+      ANTHROPIC_API_KEY  = var.anthropic_api_key
+      SNS_TOPIC_CRITICAL = aws_sns_topic.critical.arn
+      SNS_TOPIC_HIGH     = aws_sns_topic.high.arn
+      SNS_TOPIC_MEDIUM   = aws_sns_topic.medium.arn
+      SNS_TOPIC_LOW      = aws_sns_topic.low.arn
+      LOG_LEVEL          = var.environment == "prod" ? "WARNING" : "INFO"
     }
   }
 
@@ -515,7 +515,7 @@ resource "aws_cloudwatch_metric_alarm" "ingest_duration" {
   extended_statistic  = "p99"
   period              = 300
   evaluation_periods  = 2
-  threshold           = var.ingest_timeout * 1000 * 0.8  # 80% of timeout
+  threshold           = var.ingest_timeout * 1000 * 0.8 # 80% of timeout
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
 
