@@ -326,7 +326,7 @@ resource "aws_lambda_function" "ingest" {
   role          = aws_iam_role.ingest.arn
 
   filename         = "${path.module}/../dist/ingest.zip"
-  source_code_hash = filebase64sha256("${path.module}/../dist/ingest.zip")
+  source_code_hash = fileexists("${path.module}/../dist/ingest.zip") ? filebase64sha256("${path.module}/../dist/ingest.zip") : null
 
   environment {
     variables = {
@@ -364,7 +364,7 @@ resource "aws_lambda_function" "query" {
   role          = aws_iam_role.query.arn
 
   filename         = "${path.module}/../dist/query.zip"
-  source_code_hash = filebase64sha256("${path.module}/../dist/query.zip")
+  source_code_hash = fileexists("${path.module}/../dist/query.zip") ? filebase64sha256("${path.module}/../dist/query.zip") : null
 
   environment {
     variables = {
