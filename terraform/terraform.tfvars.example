@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars — it contains your API key.
+
+aws_region           = "us-east-1"
+aws_profile          = "default"
+project_name         = "ai-support-triage"
+environment          = "dev"
+anthropic_api_key    = "sk-ant-api03-YOUR-KEY-HERE"
+anthropic_model      = "claude-sonnet-4-20250514"
+max_tokens           = 512
+lambda_memory        = 256
+ingest_timeout       = 30
+query_timeout        = 10
