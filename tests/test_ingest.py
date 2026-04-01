@@ -38,10 +38,10 @@ class TestParseSesEvent:
         assert subject == "Cannot login"
         assert body == "I can't log into my account"
 
-    def test_missing_sender_raises(self):
+    def test_missing_sender_defaults(self):
         event = {"subject": "Test", "body": "Content"}
-        with pytest.raises(ValueError, match="sender"):
-            parse_ses_event(event)
+        sender, subject, body, msg_id = parse_ses_event(event)
+        assert sender == "unknown@example.com"  # sender defaults when not provided
 
     def test_missing_body_raises(self):
         event = {"sender": "test@example.com", "subject": "Test"}
@@ -320,4 +320,4 @@ class TestLambdaHandler:
         event = {"subject": "Test"}  # Missing sender and body/message
         result = lambda_handler(event, None)
         assert result["statusCode"] == 400
-        assert "Missing required fields" in result["body"]
+        assert "Unrecognized event format" in result["body"]
