@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ai-support-triage
+  description: >
+    AI-powered customer support triage — classifies urgency and category via Claude, routes to SNS topics, REST API for ticket management.
+  annotations:
+    github.com/project-slug: Three-Moons-Network/ai-support-triage
+  tags:
+    - ai
+    - aws
+    - lambda
+    - python
+    - sns
+    - terraform
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:linuxlsr
